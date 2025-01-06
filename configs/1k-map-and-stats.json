@@ -1,0 +1,42 @@
+{
+    "videoNumberOfThreads": 48,
+    "panelNumberOfThreads": 48,
+    "panelWidth": 0.2,
+    "stats": {
+        "height": 0.7,
+        "xPosition": 0.15,
+        "yPositionRange": [
+            0.2,
+            0.7
+        ],
+        "statToLabelYDistance": 0.12,
+        "fontSize": 80,
+        "labelFontSize": 50,
+        "opacity": 0.9,
+        "keysAndLabels": [
+            [
+                "heart_rate",
+                "bpm"
+            ],
+            [
+                "enhanced_speed",
+                "km/h"
+            ],
+            [
+                "enhanced_altitude",
+                "m"
+            ]
+        ]
+    },
+    "map": {
+        "height": 0.3,
+        "opacity": 0.9,
+        "markerSize": 15,
+        "marker": {
+            "innerSize": 15,
+            "outerSize": 30,
+            "innerOpacity": 1.0,
+            "outerOpacity": 0.5
+        }
+    }
+}

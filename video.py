@@ -79,7 +79,10 @@ class Video:
             ).stdout
         )
 
-        numerator, denominator = rate[rate.index("=") + 1 : rate.index("|")].split("/")
+        if "=" in rate and "\\n" in rate:
+            numerator, denominator = rate[rate.index("=") + 1 : rate.index("\\n")].split("/")
+        elif "=" in rate and "|" in rate:
+            numerator, denominator = rate[rate.index("=") + 1 : rate.index("|")].split("/")
 
         return int(numerator) / int(denominator)
 

@@ -280,6 +280,8 @@ class PanelRenderer(Renderer):
                 value = value.get_miles_per_hour()
             elif label.lower() == "mps":
                 value = value.get_meters_per_second()
+            elif label.lower() == "km/h":
+                value = value.get_kilometers_per_hour()
         return str(int(value))
 
 

@@ -93,24 +93,28 @@ if __name__ == "__main__":
         "\n".join([str(lap.start_time) for lap in garmin_segment.get_manual_laps()])
         + "\n"
     )
-    print(f"Searching for Garmin lap time between {left_search} and {right_search}.")
-    garmin_lap = garmin_segment.get_first_lap(left_search, right_search)
+    if (left_search != right_search):
+        print(f"Searching for Garmin lap time between {left_search} and {right_search}.")
+        garmin_lap = garmin_segment.get_first_lap(left_search, right_search)
 
-    if garmin_lap is None:
-        print(
-            "Could not find lap coordinate. There must be one to align video. Exiting."
-        )
-        exit()
+        if garmin_lap is None:
+            print(
+                "Could not find lap coordinate. There must be one to align video. Exiting."
+            )
+            exit()
+        else:
+            print(f"Found Garmin lap time at {garmin_lap.start_time}.\n")
+
+        garmin_lap_time = garmin_lap.start_time
+        go_pro_lap_time = video.get_start_time() + lap_time
+
+        garmin_time_shift = garmin_lap_time - go_pro_lap_time
+
+        garmin_start_time = video.get_start_time() + video_offset + garmin_time_shift
+        print(f"Garmin time shift: {garmin_time_shift}")
     else:
-        print(f"Found Garmin lap time at {garmin_lap.start_time}.\n")
-
-    garmin_lap_time = garmin_lap.start_time
-    go_pro_lap_time = video.get_start_time() + lap_time
-
-    garmin_time_shift = garmin_lap_time - go_pro_lap_time
-
-    garmin_start_time = video.get_start_time() + video_offset + garmin_time_shift
-    print(f"Garmin time shift: {garmin_time_shift}")
+        print(f"Garmin time shift: 0")
+        garmin_start_time = video.get_start_time()
     print(f"Garmin start time: {garmin_start_time}\n")
 
     print("Rendering side panels...")

@@ -90,6 +90,7 @@ class GarminCoordinate(Coordinate):
         distance: float,
         temperature: int,
         altitude: Optional[float] = None,
+        enhanced_altitude: Optional[float] = None,
         heart_rate: Optional[int] = None,
         speed: Optional["Speed"] = None,
         enhanced_speed: Optional["Speed"] = None,
@@ -111,6 +112,7 @@ class GarminCoordinate(Coordinate):
 
         self.distance = distance
         self.altitude = altitude
+        self.enhanced_altitude = enhanced_altitude
         self.speed = speed
         self.enhanced_speed = enhanced_speed
         self.heart_rate = heart_rate
@@ -122,8 +124,9 @@ class GarminCoordinate(Coordinate):
         return type(self)(
             self.timestamp,
             self.distance,
-            self.altitude,
             self.temperature,
+            self.altitude,
+            self.enhanced_altitude,
             self.heart_rate,
             self.speed,
             self.enhanced_speed,
@@ -178,7 +181,8 @@ class Segment:
         reversed_coordinates = []
         for coordinate in coordinates[::-1]:
             if (
-                coordinate.latitude is not None
+                coordinate is not None
+                and coordinate.latitude is not None
                 and coordinate.longitude is not None
                 and (
                     len(reversed_coordinates) == 0
@@ -329,7 +333,12 @@ class GarminSegment(Segment):
             message = {
                 **message,
                 "speed": Speed(meters_per_second=message.get("speed", None)),
-                "enhanced_speed": Speed(meters_per_second=message.get("enhanced_speed", None)),
+                "enhanced_speed": Speed(meters_per_second=message.get("enhanced_speed", None))
+            }
+            if (message.get("temperature", None) is None):
+                message = {
+                **message,
+                "temperature": 0
             }
             coordinates.append(GarminCoordinate(**message))
 
@@ -404,6 +413,12 @@ class Speed:
             return self.miles_per_hour / (self.SECONDS_IN_HOUR / self.METERS_IN_MILE)
         elif self.meters_per_second is not None:
             return self.meters_per_second
+
+    def get_kilometers_per_hour(self):
+        if self.miles_per_hour is not None:
+            return (self.miles_per_hour / (self.SECONDS_IN_HOUR / self.METERS_IN_MILE)) * (self.SECONDS_IN_HOUR / 1000)
+        elif self.meters_per_second is not None:
+            return self.meters_per_second * (self.SECONDS_IN_HOUR / 1000)
 
     def __add__(self, other_speed: "Speed"):
         meters_per_second = (
