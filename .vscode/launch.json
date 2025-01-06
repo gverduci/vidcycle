@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run main.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--fit-file", "../../Downloads/17921872431/17921872431_ACTIVITY.fit",
+                "--video-files", "../../Downloads/17921872431/YDXJ0262.MP4",
+                "--video-output-path", "../../Downloads/17921872431/out.mp4",
+                "--video-lap-time-in-secs", "0",
+                "--render-config-file", "./configs/1k-map-and-stats.json",
+                "--lap-time-search-window-in-secs", "0", "0"
+            ]
+        }
+    ]
+}
