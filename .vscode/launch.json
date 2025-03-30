@@ -7,12 +7,14 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "args": [
-                "--fit-file", "../../Downloads/17921872431/17921872431_ACTIVITY.fit",
-                "--video-files", "../../Downloads/17921872431/YDXJ0262.MP4",
-                "--video-output-path", "../../Downloads/17921872431/out.mp4",
-                "--video-lap-time-in-secs", "0",
-                "--render-config-file", "./configs/1k-map-and-stats.json",
-                "--lap-time-search-window-in-secs", "0", "0"
+                "--fit-file", "${userHome}/Downloads/18678121905/18678121905_ACTIVITY.fit",
+                "--video-files", "${userHome}/Downloads/18678121905/YDXJ0275.MP4",
+                "--video-output-path", "${userHome}/Downloads/18678121905/out.mp4",
+                "--video-lap-time-in-secs", "7",
+                "--render-config-file", "${workspaceFolder}/configs/1k-map-and-stats.json",
+                "--lap-time-search-window-in-secs", "0", "10",
+                "--video-offset-start-in-secs", "0",
+                "--video-hours-delta", "-1",
             ]
         }
     ]

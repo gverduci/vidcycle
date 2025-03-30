@@ -6,8 +6,9 @@ import functools
 
 
 class Video:
-    def __init__(self, video_paths: List[str]):
+    def __init__(self, video_paths: List[str], video_hours_delta: int = 0):
         self.video_paths = video_paths
+        self.video_hours_delta = video_hours_delta
 
     @staticmethod
     @functools.cache
@@ -106,6 +107,8 @@ class GoProVideo(Video):
         video_start_time = datetime.strptime(
             exif_data["Track Create Date"], "%Y:%m:%d %H:%M:%S"
         ).replace(tzinfo=timezone.utc)
+        # remove/add delta hour to the time
+        video_start_time = video_start_time + timedelta(hours=self.video_hours_delta)
         return video_start_time
 
     @functools.cache

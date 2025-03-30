@@ -55,3 +55,20 @@ Here's a clear and simple guide to help you create those amazing videos with dat
 Here's an example video that gives you an idea of what you can create.
 
 [![Fat Cake - Hawk Hill - August 22, 2023](https://img.youtube.com/vi/KuYK_RrEdTI/0.jpg)](https://www.youtube.com/watch?v=KuYK_RrEdTI)
+
+## Use case example:
+
+File video path: $HOME/Downloads/18416701210/YDXJ0273.MP4 
+Video start time:   2025-03-30 10:02:30+00:00
+Garmin start time:  2025-03-30 09:05:14+00:00
+
+The start time of the video is 1 hour in advance and the minutes are not in precise...
+
+The lap time beep in the video occurs after 7 seconds.
+The lap time in the fit file occurs within 0 to 240 seconds (video reference time)
+
+The following command fix the time problems and generate the video.
+
+```
+../venv/bin/python main.py --fit-file $HOME/Downloads/18416701210/18416701210_ACTIVITY.fit --video-files $HOME/Downloads/18416701210/YDXJ0273.MP4 --video-output-path $HOME/Downloads/18416701210/out.mp4 --video-lap-time-in-secs 7 --render-config-file ./configs/1k-map-and-stats.json --lap-time-search-window-in-secs 0 240 --video-offset-start-in-secs 0 --video-hours-delta -1
+```

@@ -384,6 +384,7 @@ class GarminLap:
     def __init__(self, start_time: datetime, lap_trigger: str, **_kwargs):
         self.start_time = start_time
         self.lap_trigger = lap_trigger
+        self.total_elapsed_time = timedelta(seconds=_kwargs.get("total_elapsed_time", 0))
 
 
 class Speed:

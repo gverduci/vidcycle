@@ -55,6 +55,15 @@ parser.add_argument(
     required=True,
     type=str,
 )
+
+parser.add_argument(
+    "--video-hours-delta",
+    help="Number of hours to add to the time of the video to align it with the Garmin time (ex: -1)",
+    required=False,
+    type=int,
+    default=0,
+)
+
 args = vars(parser.parse_args())
 
 
@@ -65,7 +74,7 @@ if __name__ == "__main__":
     lap_time = timedelta(seconds=args["video_lap_time_in_secs"])
     video_offset = timedelta(seconds=args["video_offset_start_in_secs"])
 
-    video = GoProVideo(args["video_files"])
+    video = GoProVideo(args["video_files"], args["video_hours_delta"])
 
     video_length = (
         timedelta(seconds=args["video_length_in_secs"])
@@ -90,11 +99,11 @@ if __name__ == "__main__":
 
     print("Available lap timestamps:\n")
     print(
-        "\n".join([str(lap.start_time) for lap in garmin_segment.get_manual_laps()])
+        "\n".join([str(lap.start_time) +", " +str(lap.total_elapsed_time) for lap in garmin_segment.get_manual_laps()])
         + "\n"
     )
     if (left_search != right_search):
-        print(f"Searching for Garmin lap time between {left_search} and {right_search}.")
+        print(f"Searching for Garmin lap time between {left_search} ({lap_time + left_search_bound}) and {right_search} ({lap_time + right_search_bound}).")
         garmin_lap = garmin_segment.get_first_lap(left_search, right_search)
 
         if garmin_lap is None:
@@ -105,7 +114,7 @@ if __name__ == "__main__":
         else:
             print(f"Found Garmin lap time at {garmin_lap.start_time}.\n")
 
-        garmin_lap_time = garmin_lap.start_time
+        garmin_lap_time = garmin_lap.start_time + garmin_lap.total_elapsed_time
         go_pro_lap_time = video.get_start_time() + lap_time
 
         garmin_time_shift = garmin_lap_time - go_pro_lap_time
