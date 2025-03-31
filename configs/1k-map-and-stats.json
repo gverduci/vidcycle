@@ -16,15 +16,24 @@
         "keysAndLabels": [
             [
                 "heart_rate",
-                "bpm"
+                "bpm",
+                [
+                    {"from":84, "to": 100, "color": "#a6a6a6", "label": "Warm Up" },
+                    {"from":101, "to": 117, "color": "#3b97f3", "label": "Easy"},
+                    {"from":118, "to": 133, "color": "#82c91e", "label": "Aerobic"},
+                    {"from":134, "to": 150, "color": "#f98925", "label": "Threshold"},
+                    {"from":151, "to": 1000, "color": "#d32020", "label": "Maximum"}
+                ]
             ],
             [
                 "enhanced_speed",
-                "km/h"
+                "km/h",
+                []
             ],
             [
                 "enhanced_altitude",
-                "m"
+                "m",
+                []
             ]
         ]
     },

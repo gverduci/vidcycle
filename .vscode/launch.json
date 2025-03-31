@@ -7,12 +7,12 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "args": [
-                "--fit-file", "${userHome}/Downloads/18678121905/18678121905_ACTIVITY.fit",
-                "--video-files", "${userHome}/Downloads/18678121905/YDXJ0275.MP4",
-                "--video-output-path", "${userHome}/Downloads/18678121905/out.mp4",
+                "--fit-file", "${workspaceFolder}/../../Downloads/18678121905/18678121905_ACTIVITY.fit",
+                "--video-files", "${workspaceFolder}/../../Downloads/18678121905/YDXJ0275.MP4",
+                "--video-output-path", "${workspaceFolder}/../../Downloads/18678121905/out.mp4",
                 "--video-lap-time-in-secs", "7",
                 "--render-config-file", "${workspaceFolder}/configs/1k-map-and-stats.json",
-                "--lap-time-search-window-in-secs", "0", "10",
+                "--lap-time-search-window-in-secs", "0", "240",
                 "--video-offset-start-in-secs", "0",
                 "--video-hours-delta", "-1",
             ]
