@@ -56,7 +56,28 @@ Here's an example video that gives you an idea of what you can create.
 
 [![Fat Cake - Hawk Hill - August 22, 2023](https://img.youtube.com/vi/KuYK_RrEdTI/0.jpg)](https://www.youtube.com/watch?v=KuYK_RrEdTI)
 
-## Use case:
+## Use case 1:
+
+Video started before Garmin activity.
+
+Video file path: $HOME/Downloads/18416701210/YDXJ0273.MP4 
+Video start time:   2025-04-06 10:09:38+00:00
+Garmin start time:  2025-04-06 08:10:44+00:00
+
+The start time of the video is 2 hour ahead and the minutes are not accurate...
+
+The lap time beep in the video occurs after 33 seconds.
+The lap time in the fit file is between 0 and 240 seconds (reference time of the video).
+
+The following command solves the time problems and generates the video.
+
+```
+../venv/bin/python main.py --fit-file $HOME/Downloads/18746526422/18746526422_ACTIVITY.fit --video-files $HOME/Downloads/18746526422/YDXJ0278.MP4 --video-output-path $HOME/Downloads/18746526422/out.mp4 --video-lap-time-in-secs 33 --render-config-file ./configs/1k-map-and-stats.json --lap-time-search-window-in-secs 0 240 --video-offset-start-in-secs 0 --video-hours-delta -2
+```
+
+## Use case 2:
+
+Video started afer Garmin activity.
 
 Video file path: $HOME/Downloads/18416701210/YDXJ0273.MP4 
 Video start time:   2025-03-30 10:02:30+00:00

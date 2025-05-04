@@ -92,6 +92,14 @@ if __name__ == "__main__":
     print(f"Garmin start:  {str(garmin_segment.get_start_time())}")
     print(f"Garmin end:    {str(garmin_segment.get_end_time())}\n")
 
+    if video.get_start_time().hour != garmin_segment.get_start_time().hour and abs(video.get_start_time()-garmin_segment.get_start_time()) > timedelta(minutes=30):
+        print(
+            "Warning: The start time of the video and the Garmin file are not aligned. "
+            "This may cause issues with the rendering."
+            "\n"
+            "Use --video-hours-delta to align the hours of the video with the Garmin file.\n"
+        )
+
     left_search, right_search = (
         video.get_start_time() + lap_time + left_search_bound,
         video.get_start_time() + lap_time + right_search_bound,
@@ -112,18 +120,22 @@ if __name__ == "__main__":
             )
             exit()
         else:
-            print(f"Found Garmin lap time at {garmin_lap.start_time}.\n")
+            print(f"Found Garmin lap time at {garmin_lap.start_time}, {garmin_lap.total_elapsed_time}.\n")
 
         garmin_lap_time = garmin_lap.start_time + garmin_lap.total_elapsed_time
         go_pro_lap_time = video.get_start_time() + lap_time
 
         garmin_time_shift = garmin_lap_time - go_pro_lap_time
 
-        garmin_start_time = video.get_start_time() + video_offset + garmin_time_shift
+        garmin_start_time = garmin_lap_time - lap_time + video_offset
         print(f"Garmin time shift: {garmin_time_shift}")
     else:
         print(f"Garmin time shift: 0")
         garmin_start_time = video.get_start_time()
+    
+    if (garmin_lap.start_time > garmin_start_time):
+        print(f"Garmin time shift: negative")
+    
     print(f"Garmin start time: {garmin_start_time}\n")
 
     print("Rendering side panels...")

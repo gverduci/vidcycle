@@ -73,11 +73,21 @@ class ThreadedPanelRenderer(Renderer):
     def render(self) -> None:
         self.clean_output_folder()
         subsegments = []
-        self.video_segment = self.segment.get_subsegment(
-            self.segment_start_time,
-            self.segment_start_time + self.video_length,
-            timedelta(seconds=1 / self.video.get_fps()),
-        )
+
+        if (self.segment.laps[0].start_time > self.segment_start_time):
+            self.video_segment = self.segment.get_subsegment_filled(
+                self.segment.laps[0].start_time,
+                self.segment_start_time,
+                self.segment.laps[0].start_time,
+                self.segment_start_time,
+                self.segment_start_time + self.video_length,
+                timedelta(seconds=1 / self.video.get_fps()))
+        else:
+            self.video_segment = self.segment.get_subsegment(
+                self.segment_start_time,
+                self.segment_start_time + self.video_length,
+                timedelta(seconds=1 / self.video.get_fps()),
+            )
 
         for thread, subsegment_coordinates in enumerate(
             np.array_split(self.video_segment.coordinates, self.num_threads)
@@ -220,16 +230,19 @@ class PanelRenderer(Renderer):
             marker.set_xdata([coordinate.longitude])
             marker.set_ydata([coordinate.latitude])
 
-    # ranges is an array of objects like: {"from":84, "to": 100, "color": "#a6a6a6", "label": "Warm Up" }
-    @staticmethod
-    def _findColor(ranges: List[Dict[str, Any]], value: Any, key: str) -> str:
-        if (ranges != None) and (len(ranges) > 0):
+    def _findColor(self, colors: List[Dict[str, Any]], value: Any, key: str) -> str:
+        if (colors != None) and (len(colors) > 0):
             value_to_test = value
             if key == "heart_rate":
                 value_to_test = int(value)
-            for range in ranges:
-                if range["from"] <= value_to_test and value_to_test <= range["to"]:
-                    return range["color"]
+            idx = 0
+            for boundary in self.segment.hr_zone_high_boundary:
+                if value_to_test >= boundary:
+                    idx += 1
+            if idx < len(colors):
+                return colors[idx]["color"]
+            else:
+                return colors[-1]["color"]
         return "white"
 
     def plot_stats(self) -> None:
@@ -240,7 +253,7 @@ class PanelRenderer(Renderer):
         self.key_to_stat_map: Dict[str, Tuple[Any, Any]] = {}
         start = self.segment.coordinates[0]
         for key_and_label, y_position in zip(self.stat_keys_and_labels, y_positions):
-            key, label, ranges = key_and_label
+            key, label, colors = key_and_label
             value = start.__dict__[key]
 
             value = self._make_value_text(value, label)
@@ -264,23 +277,28 @@ class PanelRenderer(Renderer):
             stat_text.set_alpha(self.stats_opacity)
             label_text.set_alpha(self.stats_opacity)
 
-            self.key_to_stat_map[key] = (stat_text, label_text, ranges)
+            self.key_to_stat_map[key] = (stat_text, label_text, colors)
 
     def update_stats(self, coordinate: GarminCoordinate) -> None:
         for key, stat_and_label in self.key_to_stat_map.items():
-            stat, label, ranges = stat_and_label
+            stat, label, colors = stat_and_label
             value = self._make_value_text(coordinate.__dict__[key], label.get_text())
-            color = self._findColor(ranges, value, key)
+            color = self._findColor(colors, value, key)
             stat.set_text(value)
             stat.set_color(color)
+
+    @staticmethod
+    def file_name(thread_number, frame: int) -> str:
+        return f"{thread_number:04}{frame:08}"
 
     def render(self) -> None:
         frame = 0
         for coordinate in self.subsegment.coordinates:
+            file_name = f"{self.output_folder}/{self.file_name(self.thread_number, frame)}"
             self.update_marker(coordinate)
             self.update_stats(coordinate)
             self.figure.savefig(
-                f"{self.output_folder}/{self.thread_number:04}{frame:08}",
+                file_name,
                 transparent=True,
             )
             frame += 1

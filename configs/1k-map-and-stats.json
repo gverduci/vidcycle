@@ -1,6 +1,6 @@
 {
-    "videoNumberOfThreads": 48,
-    "panelNumberOfThreads": 48,
+    "videoNumberOfThreads": 1,
+    "panelNumberOfThreads": 1,
     "panelWidth": 0.2,
     "stats": {
         "height": 0.7,
@@ -18,11 +18,12 @@
                 "heart_rate",
                 "bpm",
                 [
-                    {"from":84, "to": 100, "color": "#a6a6a6", "label": "Warm Up" },
-                    {"from":101, "to": 117, "color": "#3b97f3", "label": "Easy"},
-                    {"from":118, "to": 133, "color": "#82c91e", "label": "Aerobic"},
-                    {"from":134, "to": 150, "color": "#f98925", "label": "Threshold"},
-                    {"from":151, "to": 1000, "color": "#d32020", "label": "Maximum"}
+                    {"color": "#ffffff", "label": "Rest" },
+                    {"color": "#a6a6a6", "label": "Warm Up" },
+                    {"color": "#3b97f3", "label": "Easy"},
+                    {"color": "#82c91e", "label": "Aerobic"},
+                    {"color": "#f98925", "label": "Threshold"},
+                    {"color": "#d32020", "label": "Maximum"}
                 ]
             ],
             [

@@ -2,7 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run main.py",
+            "name": "Run main.py (Use case 1)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--fit-file", "${workspaceFolder}/../../Downloads/18746526422/18746526422_ACTIVITY.fit",
+                "--video-files", "${workspaceFolder}/../../Downloads/18746526422/YDXJ0278.MP4",
+                "--video-output-path", "${workspaceFolder}/../../Downloads/18746526422/out.mp4",
+                "--video-lap-time-in-secs", "33",
+                "--render-config-file", "${workspaceFolder}/configs/1k-map-and-stats.json",
+                "--lap-time-search-window-in-secs", "0", "240",
+                "--video-hours-delta", "-2",
+                "--video-length-in-secs", "200",
+            ]
+        },
+        {
+            "name": "Run main.py (Use case 2)",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
@@ -15,6 +31,23 @@
                 "--lap-time-search-window-in-secs", "0", "240",
                 "--video-offset-start-in-secs", "0",
                 "--video-hours-delta", "-1",
+                "--video-length-in-secs", "200",
+            ]
+        },
+        {
+            "name": "Run main.py (Use case 3)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--fit-file", "${workspaceFolder}/../../Downloads/18948370190/18948370190_ACTIVITY.fit",
+                "--video-files", "${workspaceFolder}/../../Downloads/18948370190/YDXJ0282.MP4",
+                "--video-output-path", "${workspaceFolder}/../../Downloads/18948370190/out.mp4",
+                "--video-lap-time-in-secs", "11",
+                "--render-config-file", "${workspaceFolder}/configs/1k-map-and-stats.json",
+                "--lap-time-search-window-in-secs", "0", "240",
+                "--video-hours-delta", "-2",
+                "--video-length-in-secs", "200",
             ]
         }
     ]

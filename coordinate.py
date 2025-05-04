@@ -238,6 +238,16 @@ class Segment:
             new_coordinates.append(self.get_coordinate(start_time))
             start_time += step_length
         return new_coordinates
+    
+    def _extend_first_coordinates(
+        self, garmin_start_time: datetime, start_time: datetime, end_time: datetime, step_length: timedelta
+    ) -> List[Coordinate]:
+        new_coordinates = []
+        new_coordinate = self.get_coordinate(garmin_start_time)
+        while start_time <= end_time:
+            new_coordinates.append(new_coordinate)
+            start_time += step_length
+        return new_coordinates
 
     def get_subsegment(
         self, start_time: datetime, end_time: datetime, step_length: timedelta
@@ -271,11 +281,12 @@ class GarminSegment(Segment):
         return super().get_coordinate(time)
 
     def __init__(
-        self, coordinates: List[GarminCoordinate], laps: List["GarminLap"] = []
+        self, coordinates: List[GarminCoordinate], laps: List["GarminLap"] = [], hr_zone_high_boundary: List[int] = []
     ) -> None:
         super().__init__(coordinates)
         self.coordinates: List[GarminCoordinate] = self.coordinates
         self.laps = laps
+        self.hr_zone_high_boundary = hr_zone_high_boundary
 
     def write_to_csv(self, file_path):
         with open(file_path, "w") as csvfile:
@@ -302,7 +313,20 @@ class GarminSegment(Segment):
         new_coordinates: List[GarminCoordinate] = self._get_coordinates(
             start_time, end_time, step_length
         )
-        return GarminSegment(new_coordinates)
+        return GarminSegment(new_coordinates, [], self.hr_zone_high_boundary)
+    
+    def get_subsegment_filled(
+        self, garmin_start_time: datetime, fill_start_time: datetime, fill_end_time: datetime, start_time: datetime, end_time: datetime, step_length: timedelta
+    ) -> "GarminSegment":
+        fill_coordinates: List[GarminCoordinate] = self._extend_first_coordinates(
+            garmin_start_time, fill_start_time, fill_end_time, step_length
+        )
+
+        new_coordinates: List[GarminCoordinate] = self._get_coordinates(
+            start_time, end_time, step_length
+        )
+
+        return GarminSegment(fill_coordinates + new_coordinates, [], self.hr_zone_high_boundary)
 
     def get_first_lap(
         self, start_time: datetime, end_time: datetime
@@ -327,6 +351,11 @@ class GarminSegment(Segment):
         decoder = Decoder(stream)
         messages, _ = decoder.read()
 
+        # save messages to json
+        with open(path + ".json", "w") as json_file:
+            json.dump(messages, json_file, indent=4, default=str)
+        json_file.close()
+
         coordinates = []
         for message in messages["record_mesgs"]:
             message = {key: message[key] for key in message if type(key) == str}
@@ -346,7 +375,15 @@ class GarminSegment(Segment):
         for message in messages["lap_mesgs"]:
             message = {key: message[key] for key in message if type(key) == str}
             laps.append(GarminLap(**message))
-        return GarminSegment(coordinates, laps=laps)
+
+        hr_zone_high_boundary = []
+        if len(messages["time_in_zone_mesgs"]) > 0:
+            message = messages["time_in_zone_mesgs"][0]
+            if len(message["hr_zone_high_boundary"]) > 0:
+                for h_boundary in message["hr_zone_high_boundary"]:
+                    hr_zone_high_boundary.append(h_boundary)
+
+        return GarminSegment(coordinates, laps=laps, hr_zone_high_boundary=hr_zone_high_boundary)
 
 
 class SegmentIterator:
