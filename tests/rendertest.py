@@ -111,12 +111,17 @@ class TestStringMethods(unittest.TestCase):
                 "enhanced_altitude",
                 "m",
                 []
+            ],
+            [
+                "slope",
+                "%",
+                []
             ]]
         stats_x_position = 0.15
-        stats_y_range = (0.2, 0.7)
-        stat_label_y_position_delta = 0.12
-        font_size = 80
-        label_font_size = 50
+        stats_y_range = (0.1, 0.8)
+        stat_label_y_position_delta = 0.11
+        font_size = 70
+        label_font_size = 40
         stats_opacity = 0.9
 
         PanelRenderer.file_name = MagicMock(return_value="test_stats")
@@ -235,6 +240,88 @@ class TestStringMethods(unittest.TestCase):
         filenameoutput = os.path.join(dirname, "..", "panel", "test_stats_range.png")
         self.assertTrue(cmp(filenameReference, filenameoutput), 'The images are not the same')        
         
+    def test_stats_range_slope(self):
+        dirname = os.path.dirname(__file__)
+        coordinates = [
+            GarminCoordinate(position_lat=-74.0143669, position_long=40.641194, distance=0, temperature=0, timestamp=0, heart_rate=120, slope=5),
+            GarminCoordinate(position_lat=-74.0144956, position_long=40.6410759, distance=1, temperature=0, timestamp=0, heart_rate=120, slope=5),
+            GarminCoordinate(position_lat=-74.0147156, position_long=40.6409009, distance=2, temperature=0, timestamp=0, heart_rate=120, slope=5)  # Adding slope for the last coordinate
+        ]
+
+
+        segment = GarminSegment(coordinates=coordinates, laps =[], hr_zone_high_boundary=[84, 101, 118, 134, 151, 168])
+        subsegment = GarminSegment(coordinates=[GarminCoordinate(position_lat=-74.0147156, position_long=40.6409009, distance=0, temperature=0, timestamp=0, heart_rate=120, slope=2)], laps =[], hr_zone_high_boundary=[84, 101, 118, 134, 151, 168])
+
+        # Mock data for testing
+        GoProVideo.get_resolution = MagicMock(return_value=(1920, 1080))
+        video = GoProVideo(video_paths=["video.mp4"], video_hours_delta=0)
+        
+        output_folder = "panel"
+        thread_number = 1
+        panel_width = 0.2
+        map_height = 0.3
+        map_opacity = 0.9
+        map_marker_inner_size = 15
+        map_marker_inner_opacity = 1.0
+        map_marker_outer_size = 30
+        map_marker_outer_opacity = 0.5  
+        stat_keys_and_labels = [
+            ["heart_rate", "bpm", []],[
+                "enhanced_speed",
+                "km/h",
+                []
+            ],
+            [
+                "enhanced_altitude",
+                "m",
+                []
+            ],
+            [
+                "slope",
+                "%",
+                [
+                    {"color": "#82c91e", "label": "Good", "boundary": 4 },
+                    {"color": "#3b97f3", "label": "Gente slope", "boundary": 6 },
+                    {"color": "#ff9900", "label": "Moderate slope", "boundary": 9},
+                    {"color": "#d32020", "label": "Steep slope", "boundary": 11}
+                ]
+            ]]
+        stats_x_position = 0.15
+        stats_y_range = (0.1, 0.8)
+        stat_label_y_position_delta = 0.11
+        font_size = 70
+        label_font_size = 40
+        stats_opacity = 0.9
+
+        PanelRenderer.file_name = MagicMock(return_value="test_stats_range_slope")
+        
+        renderer = PanelRenderer(
+            segment,
+            subsegment,
+            video,
+            output_folder,
+            thread_number,
+            panel_width,
+            map_height,
+            map_opacity,
+            map_marker_inner_size,
+            map_marker_inner_opacity,
+            map_marker_outer_size,
+            map_marker_outer_opacity,
+            stat_keys_and_labels,
+            stats_x_position,
+            stats_y_range,
+            stat_label_y_position_delta,
+            font_size,
+            label_font_size,
+            stats_opacity
+        )
+
+        renderer.render()
+
+        filenameReference = os.path.join(dirname, '..', 'testResources', 'test_stats_range_slope.png')
+        filenameoutput = os.path.join(dirname, "..", "panel", "test_stats_range_slope.png")
+        self.assertTrue(cmp(filenameReference, filenameoutput), 'The images are not the same')  
 
 if __name__ == '__main__':
     unittest.main()

@@ -98,6 +98,7 @@ class GarminCoordinate(Coordinate):
         position_long: Optional[int] = None,
         power: Optional[int] = None,
         cadence: Optional[int] = None,
+        slope: Optional["Slope"] = None,
         **_kwargs: Dict[str, Any]
     ):
         self.position_lat = position_lat
@@ -119,6 +120,7 @@ class GarminCoordinate(Coordinate):
         self.temperature = temperature
         self.power = power
         self.cadence = cadence
+        self.slope = slope
 
     def __copy__(self) -> "GarminCoordinate":
         return type(self)(
@@ -134,7 +136,11 @@ class GarminCoordinate(Coordinate):
             self.position_long,
             self.power,
             self.cadence,
+            self.slope,
         )
+
+    def set_slope(self, slope):
+        self.slope = slope
 
     def __str__(self) -> str:
         return json.dumps(self.__dict__, indent=4, default=str)
@@ -275,6 +281,136 @@ class Segment:
     def get_xy_pair(self) -> Tuple[float, float]:
         return 0.0, 0.0
 
+class Slope():
+    def __init__(self, percentage: float) -> None:
+        self.percentage = percentage
+
+    def __str__(self) -> str:
+        return f"{self.percentage:.0f}"
+    
+    def __repr__(self) -> str:
+        return f"Slope(percentage={self.percentage})"
+    
+    def __add__(self, other: "Slope") -> "Slope":
+        return Slope(self.percentage + other.percentage)
+
+    def __sub__(self, other: "Slope") -> "Slope":
+        return Slope(self.percentage - other.percentage)
+    
+    def __mul__(self, other_speed: Any) -> "Slope":
+        if type(other_speed) == float:
+            return Slope(self.percentage * other_speed)
+        elif type(other_speed) == Slope:
+            return Slope(self.percentage * other_speed.percentage)
+
+
+    def __div__(self, other: "Slope") -> "Slope":
+        if other.percentage == 0:
+            raise ZeroDivisionError("Cannot divide by zero slope")
+        return Slope(self.percentage / other.percentage)
+
+    def __lt__(self, other: "Slope") -> bool:
+        return self.percentage < other.percentage
+
+    def __gt__(self, other: "Slope") -> bool:
+        return self.percentage > other.percentage   
+    
+
+
+class SlopeCalculator():
+    def __init__(self) -> None:
+        self.d1 = 0.0
+        self.d2 = 0.0
+        self.h_fixed = 0.0
+        self.last_slope = Slope(0.0)
+        self.buffer = []
+        self.max_buffer = 4
+        self.min_x = 0.1
+        self.max_y = 50.0
+        self.count = 0
+        # altitude filter coefficient
+        self.kf = 0.0 # 0.97
+        self.least_square = True  # if True, use least square to calculate the slope, otherwise use the last two points in the buffer
+
+
+
+    def calculate(self, current_h, start_distance, end_distance) -> float:
+        
+        # current height fixed is the height that is used to calculate the slope
+        # it is calculated as a weighted average of the current height and the fixed height
+
+        # if the delta diference is too small, return the last slope
+        if (end_distance - start_distance) < self.min_x:
+            return self.last_slope
+        
+        if current_h is None:
+            return self.last_slope
+
+        self.count += 1
+
+        if (self.count <= self.max_buffer * 2):
+            self.h_fixed = current_h
+            return self.last_slope
+        
+
+        # avoid big jumps in altitude
+        current_h_fixed = ((self.h_fixed - current_h) * self.kf) + current_h
+        # current_h_fixed = current_h
+        
+        delta_d = end_distance - start_distance
+        delta_h = current_h_fixed - self.h_fixed
+
+        self.h_fixed = current_h_fixed
+
+        if (len(self.buffer) < self.max_buffer):
+            self.buffer.append([delta_d, delta_h])
+        else:
+            # remove the first element from the buffer
+            self.buffer.pop(0)
+            # add the new element to the buffer
+            self.buffer.append([delta_d, delta_h])
+
+            # fix delta h (max_y): 
+            for i in range(len(self.buffer) -1):
+                if self.buffer[i+1][1] - self.buffer[i][1] > self.max_y:
+                    self.buffer[i+1][1] = self.buffer[i][1] + self.max_y
+                if self.buffer[i+1][1] - self.buffer[i][1] < -self.max_y:
+                    self.buffer[i+1][1] = self.buffer[i][1] - self.max_y
+
+            slope = self.last_slope
+
+            if self.least_square:
+                # calculate the slope using least square on the buffer
+                sum_x = 0.0
+                sum_y = 0.0
+                sum_xy = 0.0
+                sum_xx = 0.0
+                n = len(self.buffer)
+                for x, y in self.buffer:
+                    sum_x += x
+                    sum_y += y
+                    sum_xy += x * y
+                    sum_xx += x * x
+                if n == 0:
+                    return self.last_slope
+                # calculate the slope using least square
+                slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x)
+            else:
+                # calculate the slope using the last two points in the buffer
+                if (self.buffer[-1][0] - self.buffer[-2][0]) != 0:
+                    slope = (self.buffer[-1][1] - self.buffer[-2][1]) / (self.buffer[-1][0] - self.buffer[-2][0])
+                else:
+                    slope = self.last_slope.percentage
+
+            self.last_slope = Slope(slope * 100.0)  # convert to percentage
+
+        return self.last_slope
+    
+    def reset(self):
+        self.h_fixed = 0.0
+        self.last_slope = Slope(0.0)
+        self.count = 0
+
 
 class GarminSegment(Segment):
     def get_coordinate(self, time: datetime) -> Optional[GarminCoordinate]:
@@ -345,6 +481,17 @@ class GarminSegment(Segment):
                 if lap.lap_trigger == "manual" or lap.lap_trigger == "session_end"]
 
     @staticmethod
+    def slope_percentage_calculator(slope_calculator: SlopeCalculator, coordinates: List[GarminCoordinate], end_coordinate: GarminCoordinate) -> float:
+        if len(coordinates) > 0:
+            return slope_calculator.calculate(
+                end_coordinate.enhanced_altitude or end_coordinate.altitude,
+                coordinates[-1].distance,
+                end_coordinate.distance
+            )
+        else:
+            return slope_calculator.last_slope
+
+    @staticmethod
     def load_from_fit_file(path: str) -> "GarminSegment":
         stream = Stream.from_file(path)
 
@@ -356,7 +503,9 @@ class GarminSegment(Segment):
             json.dump(messages, json_file, indent=4, default=str)
         json_file.close()
 
+        slope_calculator = SlopeCalculator()
         coordinates = []
+        print("timestamp1,distance1,timestamp2,distance2,h_fixed,slope")
         for message in messages["record_mesgs"]:
             message = {key: message[key] for key in message if type(key) == str}
             message = {
@@ -367,9 +516,23 @@ class GarminSegment(Segment):
             if (message.get("temperature", None) is None):
                 message = {
                 **message,
-                "temperature": 0
+                "temperature": 0,
+                "slope": Slope(0.0)
             }
-            coordinates.append(GarminCoordinate(**message))
+
+            coordinate = GarminCoordinate(**message)
+
+            slope = GarminSegment.slope_percentage_calculator(slope_calculator, coordinates, coordinate)
+            
+            if (len(coordinates) > 0):
+                print(f"{coordinates[-1].timestamp},{coordinates[-1].distance},{coordinate.timestamp},{coordinate.distance},{slope_calculator.h_fixed},{slope.percentage}")
+            else:
+                print(f",,{coordinate.timestamp},{coordinate.distance},{slope_calculator.h_fixed},{slope.percentage}")
+
+            coordinate.set_slope(slope)
+            coordinates.append(coordinate)
+
+        slope_calculator.reset()
 
         laps = []
         for message in messages["lap_mesgs"]:

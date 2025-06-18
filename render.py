@@ -1,5 +1,5 @@
 from datetime import timedelta, datetime
-from coordinate import GarminSegment, GarminCoordinate, Speed
+from coordinate import GarminSegment, GarminCoordinate, Speed, Slope
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as patches
@@ -230,19 +230,26 @@ class PanelRenderer(Renderer):
             marker.set_xdata([coordinate.longitude])
             marker.set_ydata([coordinate.latitude])
 
-    def _findColor(self, colors: List[Dict[str, Any]], value: Any, key: str) -> str:
+    @staticmethod
+    def _findColor(colors: List[Dict[str, Any]], value: Any, key: str, hr_zone_high_boundary) -> str:
         if (colors != None) and (len(colors) > 0):
             value_to_test = value
+            boundaries = None
             if key == "heart_rate":
                 value_to_test = int(value)
+                boundaries = hr_zone_high_boundary
+            if key == "slope":
+                value_to_test = abs(int(value))
+                boundaries = list(map(lambda x: int(x["boundary"]), colors))
             idx = 0
-            for boundary in self.segment.hr_zone_high_boundary:
+            for boundary in boundaries:
                 if value_to_test >= boundary:
                     idx += 1
             if idx < len(colors):
                 return colors[idx]["color"]
             else:
                 return colors[-1]["color"]
+        # https://www.researchgate.net/publication/362692263_Spatial_Multi-Criteria_Analysis_for_Road_Segment_Cycling_Suitability_Assessment
         return "white"
 
     def plot_stats(self) -> None:
@@ -283,7 +290,7 @@ class PanelRenderer(Renderer):
         for key, stat_and_label in self.key_to_stat_map.items():
             stat, label, colors = stat_and_label
             value = self._make_value_text(coordinate.__dict__[key], label.get_text())
-            color = self._findColor(colors, value, key)
+            color = PanelRenderer._findColor(colors, value, key, self.segment.hr_zone_high_boundary)
             stat.set_text(value)
             stat.set_color(color)
 
@@ -314,6 +321,8 @@ class PanelRenderer(Renderer):
                 value = value.get_meters_per_second()
             elif label.lower() == "km/h":
                 value = value.get_kilometers_per_hour()
+        elif type(value) is Slope:
+            return str(value)
         return str(int(value))
 
 
@@ -350,10 +359,11 @@ class VideoRenderer(Renderer):
         video_input = ffmpeg.concat(*video_inputs).trim(
             start=start,
             end=end,
-        )
+        ).setpts('PTS-STARTPTS')
+        
         audio_input = ffmpeg.concat(*audio_inputs, v=0, a=1).filter(
             "atrim", start=start, end=end
-        )
+        ).filter_('asetpts', 'PTS-STARTPTS')
 
         panel_overlay = ffmpeg.input(
             f"{self.panel_folder}/*.png",

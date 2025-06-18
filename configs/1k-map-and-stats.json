@@ -1,25 +1,25 @@
 {
-    "videoNumberOfThreads": 1,
-    "panelNumberOfThreads": 1,
+    "videoNumberOfThreads": 48,
+    "panelNumberOfThreads": 48,
     "panelWidth": 0.2,
     "stats": {
         "height": 0.7,
         "xPosition": 0.15,
         "yPositionRange": [
-            0.2,
-            0.7
+            0.1,
+            0.8
         ],
-        "statToLabelYDistance": 0.12,
-        "fontSize": 80,
-        "labelFontSize": 50,
+        "statToLabelYDistance": 0.11,
+        "fontSize": 70,
+        "labelFontSize": 40,
         "opacity": 0.9,
         "keysAndLabels": [
             [
                 "heart_rate",
                 "bpm",
                 [
-                    {"color": "#ffffff", "label": "Rest" },
-                    {"color": "#a6a6a6", "label": "Warm Up" },
+                    {"color": "#ffffff", "label": "Rest"},
+                    {"color": "#a6a6a6", "label": "Warm Up"},
                     {"color": "#3b97f3", "label": "Easy"},
                     {"color": "#82c91e", "label": "Aerobic"},
                     {"color": "#f98925", "label": "Threshold"},
@@ -35,7 +35,18 @@
                 "enhanced_altitude",
                 "m",
                 []
+            ],
+            [
+                "slope",
+                "%",
+                [
+                    {"color": "#3b97f3", "label": "Good", "boundary": 4 },
+                    {"color": "#82c91e", "label": "Gente slope", "boundary": 6 },
+                    {"color": "#f98925", "label": "Moderate slope", "boundary": 9},
+                    {"color": "#d32020", "label": "Steep slope", "boundary": 11}
+                ]
             ]
+
         ]
     },
     "map": {

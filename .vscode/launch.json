@@ -49,6 +49,38 @@
                 "--video-hours-delta", "-2",
                 "--video-length-in-secs", "200",
             ]
+        },
+        {
+            "name": "Run main.py (Use case 4)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--fit-file", "${workspaceFolder}/../../Downloads/19021114203/19021114203_ACTIVITY.fit",
+                "--video-files", "${workspaceFolder}/../../Downloads/19021114203/YDXJ0285.MP4",
+                "--video-output-path", "${workspaceFolder}/../../Downloads/19021114203/out.mp4",
+                "--video-lap-time-in-secs", "18",
+                "--render-config-file", "${workspaceFolder}/configs/1k-map-and-stats.json",
+                "--lap-time-search-window-in-secs", "0", "240",
+                "--video-hours-delta", "-2",
+            ]
+        },
+        {
+            "name": "Run main.py (Use case 5)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--fit-file", "${workspaceFolder}/../../Downloads/19160060574/19160060574_ACTIVITY.fit",
+                "--video-files", "${workspaceFolder}/../../Downloads/19160060574/YDXJ0286.MP4",
+                "--video-output-path", "${workspaceFolder}/../../Downloads/19160060574/out.mp4",
+                "--video-lap-time-in-secs", "4",
+                "--render-config-file", "${workspaceFolder}/configs/1k-map-and-stats.json",
+                "--lap-time-search-window-in-secs", "0", "240",
+                "--video-hours-delta", "-2",
+                "--video-length-in-secs", "300",
+                "--video-offset-start-in-secs", "1130"
+            ]
         }
     ]
 }
